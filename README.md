@@ -23,3 +23,6 @@ TabGap is a local-only Chrome Extension designed to instantly gather and manage 
 3. Open Google Chrome and navigate to `chrome://extensions/`.
 4. Enable "Developer mode" and click "Load unpacked".
 5. Select the generated `dist/` directory inside the project folder.
+
+*Any suggestions or feedback would be appreciated*
+
