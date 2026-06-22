@@ -1,36 +1,8 @@
 import db from './db';
 
-// Time tracking state
-let activeTabId: number | null = null;
-let activeStartTime: number | null = null;
-
-// Track tab activation
-chrome.tabs.onActivated.addListener(async (activeInfo: any) => {
-  await handleTabDeactivation();
-  activeTabId = activeInfo.tabId;
-  activeStartTime = Date.now();
-});
-
-// Track window focus (to stop tracking when Chrome is minimized)
-chrome.windows.onFocusChanged.addListener(async (windowId: number) => {
-  if (windowId === chrome.windows.WINDOW_ID_NONE) {
-    // Chrome lost focus completely
-    await handleTabDeactivation();
-  } else {
-    // Chrome gained focus or switched window
-    await handleTabDeactivation();
-    const [activeTab] = await chrome.tabs.query({ active: true, windowId });
-    if (activeTab && activeTab.id) {
-      activeTabId = activeTab.id;
-      activeStartTime = Date.now();
-    }
-  }
-});
-
-// Sync tracking before updating/closing
+// Keep DB in sync with open tabs
 chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: any, tab: chrome.tabs.Tab) => {
-  if (changeInfo.status === 'complete' && tabId === activeTabId) {
-    // URL changed or reloaded, maybe sync time or update DB title/URL
+  if (changeInfo.status === 'complete') {
     if (tab.url && !tab.url.startsWith('chrome-extension://')) {
       const existingTab = await db.tabs.where('tabId').equals(tabId).first();
       if (existingTab) {
@@ -41,14 +13,12 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: any, tab: ch
           lastAccessed: Date.now()
         });
       } else {
-        // Automatically add newly opened tabs as 'open' status
         await db.tabs.add({
           url: tab.url,
           title: tab.title || 'New Tab',
           favicon: tab.favIconUrl,
           isFavorite: false,
           lastAccessed: Date.now(),
-          totalActiveTime: 0,
           status: 'open',
           tabId: tabId,
           windowId: tab.windowId
@@ -59,12 +29,6 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: any, tab: ch
 });
 
 chrome.tabs.onRemoved.addListener(async (tabId: number) => {
-  if (tabId === activeTabId) {
-    await handleTabDeactivation();
-    activeTabId = null;
-  }
-  // When a tab is closed naturally, update its status or remove from open status?
-  // Let's just mark it as saved so it stays in dashboard history.
   const existingTab = await db.tabs.where('tabId').equals(tabId).first();
   if (existingTab) {
     await db.tabs.update(existingTab.id!, {
@@ -75,22 +39,6 @@ chrome.tabs.onRemoved.addListener(async (tabId: number) => {
   }
 });
 
-async function handleTabDeactivation() {
-  if (activeTabId !== null && activeStartTime !== null) {
-    const elapsed = Date.now() - activeStartTime;
-    if (elapsed > 1000) { // Only track if more than 1 second
-      const existingTab = await db.tabs.where('tabId').equals(activeTabId).first();
-      if (existingTab) {
-        await db.tabs.update(existingTab.id!, {
-          totalActiveTime: existingTab.totalActiveTime + elapsed,
-          lastAccessed: Date.now()
-        });
-      }
-    }
-    activeStartTime = null;
-  }
-}
-
 // Listen for messages from Dashboard/Popup
 chrome.runtime.onMessage.addListener((message: any, _sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
   if (message.action === 'gather_tabs') {
@@ -99,6 +47,10 @@ chrome.runtime.onMessage.addListener((message: any, _sender: chrome.runtime.Mess
   }
   if (message.action === 'open_dashboard') {
     openDashboard().then(() => sendResponse({ success: true }));
+    return true;
+  }
+  if (message.action === 'restore_all_tabs') {
+    restoreAllTabs().then(() => sendResponse({ success: true }));
     return true;
   }
 });
@@ -165,7 +117,6 @@ async function gatherTabs() {
           favicon: tab.favIconUrl,
           isFavorite: false,
           lastAccessed: Date.now(),
-          totalActiveTime: 0,
           status: 'saved'
         });
       }
@@ -179,5 +130,16 @@ async function gatherTabs() {
   // Close all gathered tabs
   if (tabsToClose.length > 0) {
     await chrome.tabs.remove(tabsToClose);
+  }
+}
+
+async function restoreAllTabs() {
+  // Get all saved tabs
+  const savedTabs = await db.tabs.where('status').equals('saved').toArray();
+  
+  for (const tab of savedTabs) {
+    await chrome.tabs.create({ url: tab.url, active: false });
+    // Remove from local database since they are restored to browser
+    await db.tabs.delete(tab.id!);
   }
 }

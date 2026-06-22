@@ -9,7 +9,6 @@ export interface TabData {
   isFavorite: boolean;
   groupId?: number;
   lastAccessed: number;
-  totalActiveTime: number; // in milliseconds
   status: 'open' | 'saved' | 'removed'; // 'open' means it's currently active in browser, 'saved' means it's swallowed in the dashboard, 'removed' means hidden from all tabs but in history
   windowId?: number; // the browser window it belongs to (if open)
   tabId?: number; // the browser tab ID (if open)
@@ -35,8 +34,8 @@ const db = new Dexie('TabGapDatabase') as Dexie & {
   workspaces: EntityTable<Workspace, 'id'>;
 };
 
-db.version(1).stores({
-  tabs: '++id, url, title, customName, isFavorite, groupId, lastAccessed, totalActiveTime, status, tabId, windowId',
+db.version(2).stores({
+  tabs: '++id, url, title, customName, isFavorite, groupId, lastAccessed, status, tabId, windowId',
   groups: '++id, name',
   workspaces: '++id, name',
 });

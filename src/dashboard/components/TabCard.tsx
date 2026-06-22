@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Pin, Globe, Clock, MonitorPlay, Save, Trash2, Edit2 } from 'lucide-react';
+import { Pin, Globe, MonitorPlay, Save, Trash2, Edit2 } from 'lucide-react';
 import db, { type TabData } from '../../db';
 
 interface TabCardProps {
@@ -11,14 +11,7 @@ interface TabCardProps {
 export default function TabCard({ tab, onOpen }: TabCardProps) {
   const isSaved = tab.status === 'saved';
 
-  const formatTime = (ms: number) => {
-    if (!ms) return '0m';
-    const mins = Math.floor(ms / 60000);
-    if (mins < 60) return `${mins}m`;
-    const hrs = Math.floor(mins / 60);
-    const remMins = mins % 60;
-    return `${hrs}h ${remMins}m`;
-  };
+
 
   const handleTogglePin = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -99,10 +92,7 @@ export default function TabCard({ tab, onOpen }: TabCardProps) {
           <span>{isSaved ? 'Saved' : 'Active'}</span>
         </div>
         
-        <div className="flex items-center gap-1.5 text-zinc-500">
-          <Clock className="w-3.5 h-3.5" />
-          <span>{formatTime(tab.totalActiveTime)}</span>
-        </div>
+
       </div>
     </motion.div>
   );

@@ -20,10 +20,12 @@ export default function Topbar() {
       </div>
       
       <div className="ml-auto flex items-center gap-4 text-sm">
-        <div className="flex flex-col text-right">
-          <span className="text-zinc-400 text-xs">Total Active Time</span>
-          <span className="font-medium text-zinc-100 tracking-tight">0h 0m</span>
-        </div>
+        <button 
+          onClick={() => chrome.runtime.sendMessage({ action: 'restore_all_tabs' })}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300 rounded-lg transition-colors font-medium text-xs"
+        >
+          Restore All Tabs
+        </button>
       </div>
     </header>
   );
