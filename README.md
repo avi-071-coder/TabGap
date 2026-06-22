@@ -8,10 +8,8 @@ TabGap is a local-only Chrome Extension designed to instantly gather and manage 
 
 ## Key Features
 - Instant Gathering: One-click action to save all open tabs to your dashboard and close them in the browser.
-- Time Tracking: Automatically tracks the active, focused time spent on each tab.
 - Local Storage: Uses IndexedDB to store all data locally on your machine. No data is sent to external servers, ensuring complete privacy.
 - Organization: Supports custom tab renaming, pinning important tabs, and viewing recently accessed tabs.
-- Global Search: Quickly find saved tabs by URL, original title, or custom name.
 
 ## Setup
 1. Install dependencies:
