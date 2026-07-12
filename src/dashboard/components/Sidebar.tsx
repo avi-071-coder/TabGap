@@ -2,8 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { 
   Layers, 
   Pin, 
-  Clock, 
-  Settings 
+  Clock 
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -18,8 +17,8 @@ export default function Sidebar() {
   return (
     <aside className="w-64 border-r border-white/5 bg-zinc-950/50 backdrop-blur-xl flex flex-col z-20">
       <div className="h-16 flex items-center px-6 border-b border-white/5">
-        <div className="flex items-center gap-2 text-white">
-          <Layers className="w-6 h-6 text-blue-400" />
+        <div className="flex items-center gap-2.5 text-white">
+          <img src="/logo.png" alt="TabGap Logo" className="w-7 h-7 object-contain" />
           <span className="font-semibold text-lg tracking-tight">TabGap</span>
         </div>
       </div>
@@ -43,23 +42,7 @@ export default function Sidebar() {
           </NavLink>
         ))}
       </div>
-
-      <div className="p-3 border-t border-white/5">
-        <NavLink
-          to="/settings"
-          className={({ isActive }) => twMerge(
-            clsx(
-              "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200",
-              isActive 
-                ? "bg-blue-500/10 text-blue-400" 
-                : "text-zinc-400 hover:text-zinc-100 hover:bg-white/5"
-            )
-          )}
-        >
-          <Settings className="w-4 h-4" />
-          Settings
-        </NavLink>
-      </div>
     </aside>
   );
 }
+
